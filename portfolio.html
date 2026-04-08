@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Portfolio med frontendprojekt som visar design, responsivitet, JavaScript och webboptimering.">
+  <title>Portfolio | Ludwig</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="portfolio">
+  <a class="skip-link" href="#main-content">Hoppa till innehållet</a>
+
+  <header class="site-header">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="index.html" aria-label="Startsida">
+          <span class="brand-mark">L</span>
+          <span>Ludwig</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primary-nav" aria-controls="primary-nav" aria-expanded="false" aria-label="Visa navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="primary-nav">
+          <ul class="navbar-nav ms-auto mb-3 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" data-nav="home" href="index.html">Startsida</a></li>
+            <li class="nav-item"><a class="nav-link" data-nav="about" href="om-mig.html">Om mig</a></li>
+            <li class="nav-item"><a class="nav-link" data-nav="portfolio" href="portfolio.html">Portfolio</a></li>
+            <li class="nav-item"><a class="nav-link" data-nav="contact" href="kontakt.html">Kontakt</a></li>
+          </ul>
+          <a class="btn btn-brand btn-sm" href="kontakt.html">Boka kontakt</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <section class="page-hero">
+      <div class="container">
+        <div class="page-hero-copy" data-reveal>
+          <p class="eyebrow">Portfolio</p>
+          <h1>Utvalda projekt med fokus på design, funktion och kodkvalitet.</h1>
+          <p>
+            Här visar jag projekt som lyfter olika delar av webbutveckling: responsiv layout, interaktivitet, tydlig informationsstruktur och optimering för webben.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-space">
+      <div class="container">
+        <div class="filter-bar" data-reveal aria-label="Filtrera projekt">
+          <button class="filter-button is-active" type="button" data-filter="all">Alla</button>
+          <button class="filter-button" type="button" data-filter="frontend">Frontend</button>
+          <button class="filter-button" type="button" data-filter="ux">UX och design</button>
+          <button class="filter-button" type="button" data-filter="performance">Prestanda</button>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
+            <article class="project-card" id="project-cv" data-category="frontend ux">
+              <img src="assets/images/project-cv.svg" alt="Illustration av CV-webbplats med hero och innehållskort" width="640" height="420" loading="lazy">
+              <div class="project-card-body">
+                <div class="tag-row">
+                  <span>HTML</span>
+                  <span>CSS</span>
+                  <span>Bootstrap</span>
+                </div>
+                <h2>CV-webbplats</h2>
+                <p>En fler-sidig webbplats med tydlig personlig profil, projektsektion, kontaktformulär och dokumentationsstöd för skoluppgift.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="cvWebsite">Läs mer</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
+            <article class="project-card" id="project-gallery" data-category="frontend ux">
+              <img src="assets/images/project-gallery.svg" alt="Illustration av ett interaktivt galleri med bilder" width="640" height="420" loading="lazy">
+              <div class="project-card-body">
+                <div class="tag-row">
+                  <span>JavaScript</span>
+                  <span>Modal</span>
+                  <span>Filter</span>
+                </div>
+                <h2>Interaktiv projektsida</h2>
+                <p>En layout med bildkort, kategorifilter och modalvisning för att göra portfolion mer dynamisk och enkel att utforska.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="interactiveGallery">Läs mer</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
+            <article class="project-card" id="project-dashboard" data-category="frontend performance">
+              <img src="assets/images/project-dashboard.svg" alt="Illustration av responsiv dashboard med olika paneler" width="640" height="420" loading="lazy">
+              <div class="project-card-body">
+                <div class="tag-row">
+                  <span>SEO</span>
+                  <span>Responsiv</span>
+                  <span>Optimering</span>
+                </div>
+                <h2>Responsiv dashboard</h2>
+                <p>En informationsrik sida byggd för att vara tydlig även på mindre skärmar, med fokus på prestanda, metadata och innehållsstruktur.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="responsiveDashboard">Läs mer</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-space section-surface">
+      <div class="container">
+        <div class="section-heading" data-reveal>
+          <p class="eyebrow">Vad projekten visar</p>
+          <h2>Mer än bara utseende</h2>
+          <p>Varje projekt är tänkt att visa både tekniska och personliga styrkor.</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-4" data-reveal>
+            <article class="insight-card">
+              <h3>Problemlösning</h3>
+              <p>Jag försöker hitta lösningar som både fungerar praktiskt och känns genomtänkta för användaren.</p>
+            </article>
+          </div>
+          <div class="col-md-4" data-reveal>
+            <article class="insight-card">
+              <h3>Noggrannhet</h3>
+              <p>Jag arbetar med detaljer som spacing, kontrast, rubriknivåer och tydliga gränssnitt för att skapa kvalitet.</p>
+            </article>
+          </div>
+          <div class="col-md-4" data-reveal>
+            <article class="insight-card">
+              <h3>Utvecklingsvilja</h3>
+              <p>Jag ser varje projekt som en chans att förbättra både kod, design och arbetsprocess inför nästa uppgift.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="projectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content project-modal">
+        <div class="modal-header">
+          <div>
+            <p class="mini-label">Projektöversikt</p>
+            <h2 class="modal-title" id="projectModalLabel">Projekt</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+        </div>
+        <div class="modal-body">
+          <img id="projectModalImage" src="assets/images/project-cv.svg" alt="" width="640" height="420">
+          <p id="projectModalText"></p>
+          <div class="modal-section">
+            <h3>Utmaning</h3>
+            <p id="projectModalChallenge"></p>
+          </div>
+          <div class="modal-section">
+            <h3>Lösning</h3>
+            <p id="projectModalResult"></p>
+          </div>
+          <div class="modal-section">
+            <h3>Teknik</h3>
+            <div id="projectModalTags" class="tag-row"></div>
+          </div>
+          <div class="modal-section">
+            <h3>Nyckelpunkter</h3>
+            <ul id="projectModalHighlights" class="clean-list"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-layout">
+      <p>© <span data-current-year></span> Ludwig. Byggd med HTML, CSS, JavaScript och Bootstrap.</p>
+      <div class="footer-links">
+        <a href="index.html">Startsida</a>
+        <a href="om-mig.html">Om mig</a>
+        <a href="kontakt.html">Kontakt</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
