@@ -19,14 +19,14 @@
     <nav class="navbar navbar-expand-lg">
       <div class="container">
         <a class="navbar-brand" href="index.html" aria-label="Startsida">
-          <span class="brand-mark">L</span>
           <span>Ludwig</span>
+          <span class="brand-mark">L</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primary-nav" aria-controls="primary-nav" aria-expanded="false" aria-label="Visa navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="primary-nav">
-          <ul class="navbar-nav ms-auto mb-3 mb-lg-0">
+          <ul class="navbar-nav mb-3 mb-lg-0">
             <li class="nav-item"><a class="nav-link" data-nav="home" href="index.html">Startsida</a></li>
             <li class="nav-item"><a class="nav-link" data-nav="about" href="om-mig.html">Om mig</a></li>
             <li class="nav-item"><a class="nav-link" data-nav="portfolio" href="portfolio.html">Portfolio</a></li>
@@ -62,49 +62,49 @@
 
         <div class="row g-4">
           <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
-            <article class="project-card" id="project-cv" data-category="frontend ux">
-              <img src="assets/images/project-cv.svg" alt="Illustration av CV-webbplats med hero och innehållskort" width="640" height="420" loading="lazy">
+            <article class="project-card" id="project-hoganasevent" data-category="frontend ux">
+              <img src="assets/images/hoganasevent-screenshot.png" alt="Skärmbild av Höganäs Event med filter och eventkort" width="640" height="420" loading="lazy">
               <div class="project-card-body">
                 <div class="tag-row">
                   <span>HTML</span>
                   <span>CSS</span>
-                  <span>Bootstrap</span>
+                  <span>Backend</span>
                 </div>
-                <h2>CV-webbplats</h2>
-                <p>En fler-sidig webbplats med tydlig personlig profil, projektsektion, kontaktformulär och dokumentationsstöd för skoluppgift.</p>
-                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="cvWebsite">Läs mer</button>
+                <h2>Höganäs Event</h2>
+                <p>Mitt gymnasiearbete: en lokal eventsida där företag och privatpersoner kan lägga upp, hitta och filtrera händelser i Höganäs kommun.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="hoganasEvent">Läs mer</button>
               </div>
             </article>
           </div>
 
           <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
-            <article class="project-card" id="project-gallery" data-category="frontend ux">
-              <img src="assets/images/project-gallery.svg" alt="Illustration av ett interaktivt galleri med bilder" width="640" height="420" loading="lazy">
+            <article class="project-card" id="project-dreamtalent" data-category="frontend ux">
+              <img src="assets/images/DreamTalent-Screenshot.png" alt="Skärmbild av DreamTalent startsida" width="640" height="420" loading="lazy">
               <div class="project-card-body">
                 <div class="tag-row">
+                  <span>HTML</span>
+                  <span>CSS</span>
                   <span>JavaScript</span>
-                  <span>Modal</span>
-                  <span>Filter</span>
                 </div>
-                <h2>Interaktiv projektsida</h2>
-                <p>En layout med bildkort, kategorifilter och modalvisning för att göra portfolion mer dynamisk och enkel att utforska.</p>
-                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="interactiveGallery">Läs mer</button>
+                <h2>DreamTalent</h2>
+                <p>Min första riktiga webbplats: en informationssida om hållbar rekrytering med fokus på tydligt budskap, struktur och enkel navigation.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="dreamTalent">Läs mer</button>
               </div>
             </article>
           </div>
 
           <div class="col-md-6 col-xl-4 project-card-wrap" data-reveal>
-            <article class="project-card" id="project-dashboard" data-category="frontend performance">
-              <img src="assets/images/project-dashboard.svg" alt="Illustration av responsiv dashboard med olika paneler" width="640" height="420" loading="lazy">
+            <article class="project-card" id="project-mersmak" data-category="frontend performance">
+              <img src="assets/images/Mersmak-Screenshot.png" alt="Skärmbild av Mersmak Helsingborgs webbplats" width="640" height="420" loading="lazy">
               <div class="project-card-body">
                 <div class="tag-row">
-                  <span>SEO</span>
                   <span>Responsiv</span>
-                  <span>Optimering</span>
+                  <span>Teamwork</span>
+                  <span>Webbplats</span>
                 </div>
-                <h2>Responsiv dashboard</h2>
-                <p>En informationsrik sida byggd för att vara tydlig även på mindre skärmar, med fokus på prestanda, metadata och innehållsstruktur.</p>
-                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="responsiveDashboard">Läs mer</button>
+                <h2>Mersmak</h2>
+                <p>En publicerad webbplats för ett nätverk där relationer, affärsnytta och gastronomiska upplevelser möts.</p>
+                <button class="btn btn-ghost btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#projectModal" data-project-key="mersmak">Läs mer</button>
               </div>
             </article>
           </div>
@@ -172,6 +172,7 @@
             <h3>Nyckelpunkter</h3>
             <ul id="projectModalHighlights" class="clean-list"></ul>
           </div>
+          <a id="projectModalLink" class="btn btn-brand btn-sm project-link" href="#" target="_blank" rel="noopener">Besök sidan</a>
         </div>
       </div>
     </div>
