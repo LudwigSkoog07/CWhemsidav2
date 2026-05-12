@@ -202,10 +202,24 @@ function initDesktopWindowMotion() {
   }
 
   const motion = {
-    pointerX: 0,
-    pointerY: 0,
+    pointerClientX: 0,
+    pointerClientY: 0,
+    hasPointer: false,
     scrollProgress: 0
   };
+
+  const liveMotion = new Map(
+    cards.map((card) => [
+      card,
+      {
+        x: 0,
+        y: 0,
+        rotate: 0,
+        scale: 1,
+        opacity: 1
+      }
+    ])
+  );
 
   const cardMotion = new Map([
     [document.querySelector(".intro-window"), { outX: -260, outY: -120, outRotate: -8, baseRotate: 0, scaleLoss: 0.08 }],
@@ -216,8 +230,78 @@ function initDesktopWindowMotion() {
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const easeOut = (value) => 1 - Math.pow(1 - value, 3);
+  const lerp = (current, target, amount) => current + (target - current) * amount;
+  let frameId;
+
+  const getActiveCard = () => {
+    if (!motion.hasPointer) {
+      return null;
+    }
+
+    return cards.reduce((closestCard, card) => {
+      if (card.classList.contains("is-dismissed")) {
+        return closestCard;
+      }
+
+      const rect = card.getBoundingClientRect();
+      const nearestX = clamp(motion.pointerClientX, rect.left, rect.right);
+      const nearestY = clamp(motion.pointerClientY, rect.top, rect.bottom);
+      const distanceToBox = Math.hypot(motion.pointerClientX - nearestX, motion.pointerClientY - nearestY);
+      const hitboxRadius = clamp(Math.max(rect.width, rect.height) * 0.28, 120, 180);
+
+      if (distanceToBox > hitboxRadius) {
+        return closestCard;
+      }
+
+      if (!closestCard || distanceToBox < closestCard.distance) {
+        return { card, distance: distanceToBox };
+      }
+
+      return closestCard;
+    }, null)?.card || null;
+  };
+
+  const getAvoidanceMotion = (card, activeCard) => {
+    if (card !== activeCard || !motion.hasPointer) {
+      return { x: 0, y: 0, rotate: 0 };
+    }
+
+    const rect = card.getBoundingClientRect();
+    const nearestX = clamp(motion.pointerClientX, rect.left, rect.right);
+    const nearestY = clamp(motion.pointerClientY, rect.top, rect.bottom);
+    const distanceToBox = Math.hypot(motion.pointerClientX - nearestX, motion.pointerClientY - nearestY);
+    const hitboxRadius = clamp(Math.max(rect.width, rect.height) * 0.28, 120, 180);
+    const influence = clamp(1 - distanceToBox / hitboxRadius, 0, 1);
+
+    if (influence === 0) {
+      return { x: 0, y: 0, rotate: 0 };
+    }
+
+    let awayX = rect.left + rect.width / 2 - motion.pointerClientX;
+    let awayY = rect.top + rect.height / 2 - motion.pointerClientY;
+    let awayDistance = Math.hypot(awayX, awayY);
+
+    if (awayDistance < 0.001) {
+      awayX = 0;
+      awayY = -1;
+      awayDistance = 1;
+    }
+
+    const strength = easeOut(influence);
+    const maxPush = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 22);
+    const normalizedX = awayX / awayDistance;
+    const normalizedY = awayY / awayDistance;
+
+    return {
+      x: normalizedX * maxPush * strength,
+      y: normalizedY * maxPush * strength,
+      rotate: clamp(normalizedX * 1.8, -1.8, 1.8) * strength
+    };
+  };
 
   const render = () => {
+    frameId = undefined;
+
     if (window.innerWidth < 992) {
       cards.forEach((card) => {
         card.style.opacity = "";
@@ -227,20 +311,53 @@ function initDesktopWindowMotion() {
     }
 
     const easedScroll = easeOut(motion.scrollProgress);
+    const activeCard = getActiveCard();
+    let shouldKeepAnimating = false;
 
     cards.forEach((card) => {
-      const config = cardMotion.get(card) || { outX: 0, outY: -120, outRotate: 0, baseRotate: 0, scaleLoss: 0.05 };
-      const depth = Number(card.dataset.depth || 0.03);
-      const pointerX = motion.pointerX * depth;
-      const pointerY = motion.pointerY * depth;
-      const x = pointerX + config.outX * easedScroll;
-      const y = pointerY + config.outY * easedScroll;
-      const rotate = config.baseRotate + config.outRotate * easedScroll;
-      const scale = 1 - config.scaleLoss * easedScroll;
+      if (card.classList.contains("is-dismissed")) {
+        card.style.opacity = "";
+        card.style.transform = "";
+        return;
+      }
 
-      card.style.opacity = String(clamp(1 - easedScroll * 1.15, 0, 1));
-      card.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
+      const config = cardMotion.get(card) || { outX: 0, outY: -120, outRotate: 0, baseRotate: 0, scaleLoss: 0.05 };
+      const avoidance = getAvoidanceMotion(card, activeCard);
+      const state = liveMotion.get(card);
+      const target = {
+        x: config.outX * easedScroll + avoidance.x,
+        y: config.outY * easedScroll + avoidance.y,
+        rotate: config.baseRotate + config.outRotate * easedScroll + avoidance.rotate,
+        scale: 1 - config.scaleLoss * easedScroll,
+        opacity: clamp(1 - easedScroll * 1.15, 0, 1)
+      };
+
+      state.x = lerp(state.x, target.x, 0.18);
+      state.y = lerp(state.y, target.y, 0.18);
+      state.rotate = lerp(state.rotate, target.rotate, 0.18);
+      state.scale = lerp(state.scale, target.scale, 0.18);
+      state.opacity = lerp(state.opacity, target.opacity, 0.18);
+
+      shouldKeepAnimating = shouldKeepAnimating
+        || Math.abs(state.x - target.x) > 0.05
+        || Math.abs(state.y - target.y) > 0.05
+        || Math.abs(state.rotate - target.rotate) > 0.02
+        || Math.abs(state.scale - target.scale) > 0.001
+        || Math.abs(state.opacity - target.opacity) > 0.002;
+
+      card.style.opacity = String(state.opacity);
+      card.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) rotate(${state.rotate}deg) scale(${state.scale})`;
     });
+
+    if (shouldKeepAnimating) {
+      frameId = window.requestAnimationFrame(render);
+    }
+  };
+
+  const queueRender = () => {
+    if (!frameId) {
+      frameId = window.requestAnimationFrame(render);
+    }
   };
 
   const updateScroll = () => {
@@ -248,7 +365,7 @@ function initDesktopWindowMotion() {
     const start = window.innerHeight * 0.12;
     const distance = Math.max(scene.offsetHeight * 0.55, 360);
     motion.scrollProgress = clamp((start - rect.top) / distance, 0, 1);
-    window.requestAnimationFrame(render);
+    queueRender();
   };
 
   scene.addEventListener("pointermove", (event) => {
@@ -256,16 +373,15 @@ function initDesktopWindowMotion() {
       return;
     }
 
-    const rect = scene.getBoundingClientRect();
-    motion.pointerX = event.clientX - rect.left - rect.width / 2;
-    motion.pointerY = event.clientY - rect.top - rect.height / 2;
-    window.requestAnimationFrame(render);
+    motion.pointerClientX = event.clientX;
+    motion.pointerClientY = event.clientY;
+    motion.hasPointer = true;
+    queueRender();
   });
 
   scene.addEventListener("pointerleave", () => {
-    motion.pointerX = 0;
-    motion.pointerY = 0;
-    window.requestAnimationFrame(render);
+    motion.hasPointer = false;
+    queueRender();
   });
 
   window.addEventListener("scroll", updateScroll, { passive: true });

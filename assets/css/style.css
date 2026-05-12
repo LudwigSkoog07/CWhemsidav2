@@ -606,9 +606,8 @@ a:hover {
   position: absolute;
   border: 1px solid rgba(31, 41, 51, 0.16);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 24px 70px rgba(31, 41, 51, 0.14);
-  backdrop-filter: blur(18px);
   will-change: transform, opacity;
   transition: box-shadow 0.25s ease, opacity 0.25s ease;
 }
