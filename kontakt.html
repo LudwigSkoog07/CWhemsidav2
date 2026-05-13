@@ -97,23 +97,23 @@
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label" for="name">Namn</label>
-                    <input class="form-control" type="text" id="name" name="name" required>
-                    <div class="invalid-feedback">Fyll i ditt namn.</div>
+                    <input class="form-control" type="text" id="name" name="name" minlength="2" maxlength="120" required>
+                    <div class="invalid-feedback">Fyll i ditt namn med minst 2 tecken.</div>
                   </div>
                   <div class="col-md-6">
                     <label class="form-label" for="email">E-post</label>
-                    <input class="form-control" type="email" id="email" name="email" required>
+                    <input class="form-control" type="email" id="email" name="email" maxlength="254" required>
                     <div class="invalid-feedback">Ange en giltig e-postadress.</div>
                   </div>
                   <div class="col-12">
                     <label class="form-label" for="subject">Ämne</label>
-                    <input class="form-control" type="text" id="subject" name="subject" required>
-                    <div class="invalid-feedback">Skriv ett ämne.</div>
+                    <input class="form-control" type="text" id="subject" name="subject" minlength="2" maxlength="160" required>
+                    <div class="invalid-feedback">Skriv ett ämne med minst 2 tecken.</div>
                   </div>
                   <div class="col-12">
                     <label class="form-label" for="message">Meddelande</label>
-                    <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
-                    <div class="invalid-feedback">Skriv ditt meddelande.</div>
+                    <textarea class="form-control" id="message" name="message" rows="6" minlength="5" maxlength="5000" required></textarea>
+                    <div class="invalid-feedback">Skriv ett meddelande med minst 5 tecken.</div>
                   </div>
                   <div class="col-12">
                     <div class="form-check">

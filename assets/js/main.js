@@ -90,8 +90,16 @@ function initRevealOnScroll() {
     return;
   }
 
+  const heroElements = document.querySelectorAll(".desktop-hero [data-reveal]");
+  heroElements.forEach((element) => element.classList.add("is-visible"));
+
+  const revealElements = Array.from(elements).filter((element) => !element.classList.contains("is-visible"));
+  if (!revealElements.length) {
+    return;
+  }
+
   if (!("IntersectionObserver" in window)) {
-    elements.forEach((element) => element.classList.add("is-visible"));
+    revealElements.forEach((element) => element.classList.add("is-visible"));
     return;
   }
 
@@ -107,7 +115,7 @@ function initRevealOnScroll() {
     { threshold: 0.15 }
   );
 
-  elements.forEach((element) => observer.observe(element));
+  revealElements.forEach((element) => observer.observe(element));
 }
 
 function initPortfolioFilter() {
@@ -196,89 +204,86 @@ function initDesktopWindowMotion() {
   const scene = document.querySelector("[data-parallax-scene]");
   const cards = Array.from(document.querySelectorAll("[data-float-card]"));
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionScale = reducedMotion ? 0.55 : 1;
+  const pushScale = reducedMotion ? 0.7 : 1;
 
-  if (!scene || !cards.length || reducedMotion) {
+  if (!scene || !cards.length) {
     return;
   }
-
-  const motion = {
-    pointerClientX: 0,
-    pointerClientY: 0,
-    hasPointer: false,
-    scrollProgress: 0
-  };
-
-  const liveMotion = new Map(
-    cards.map((card) => [
-      card,
-      {
-        x: 0,
-        y: 0,
-        rotate: 0,
-        scale: 1,
-        opacity: 1
-      }
-    ])
-  );
-
-  const cardMotion = new Map([
-    [document.querySelector(".intro-window"), { outX: -260, outY: -120, outRotate: -8, baseRotate: 0, scaleLoss: 0.08 }],
-    [document.querySelector(".player-window"), { outX: 270, outY: -150, outRotate: 10, baseRotate: 3, scaleLoss: 0.05 }],
-    [document.querySelector(".airdrop-window"), { outX: 290, outY: 170, outRotate: 8, baseRotate: 0, scaleLoss: 0.08 }],
-    [document.querySelector(".stack-window"), { outX: -230, outY: 180, outRotate: -10, baseRotate: -4, scaleLoss: 0.06 }]
-  ]);
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const easeOut = (value) => 1 - Math.pow(1 - value, 3);
   const lerp = (current, target, amount) => current + (target - current) * amount;
-  let frameId;
 
-  const getActiveCard = () => {
-    if (!motion.hasPointer) {
-      return null;
-    }
-
-    return cards.reduce((closestCard, card) => {
-      if (card.classList.contains("is-dismissed")) {
-        return closestCard;
-      }
-
-      const rect = card.getBoundingClientRect();
-      const nearestX = clamp(motion.pointerClientX, rect.left, rect.right);
-      const nearestY = clamp(motion.pointerClientY, rect.top, rect.bottom);
-      const distanceToBox = Math.hypot(motion.pointerClientX - nearestX, motion.pointerClientY - nearestY);
-      const hitboxRadius = clamp(Math.max(rect.width, rect.height) * 0.28, 120, 180);
-
-      if (distanceToBox > hitboxRadius) {
-        return closestCard;
-      }
-
-      if (!closestCard || distanceToBox < closestCard.distance) {
-        return { card, distance: distanceToBox };
-      }
-
-      return closestCard;
-    }, null)?.card || null;
+  const pointer = {
+    x: 0,
+    y: 0,
+    isActive: false,
+    isPressed: false
   };
 
-  const getAvoidanceMotion = (card, activeCard) => {
-    if (card !== activeCard || !motion.hasPointer) {
-      return { x: 0, y: 0, rotate: 0 };
+  const scroll = {
+    progress: 0
+  };
+
+  const cardMotion = new Map([
+    [document.querySelector(".intro-window"), { baseRotate: 0, floatX: 7 * motionScale, floatY: 10 * motionScale, floatRotate: 0.35 * motionScale, push: 18 * pushScale, phase: 0, outX: -300, outY: -45, outRotate: -6, scaleLoss: 0.04 }],
+    [document.querySelector(".player-window"), { baseRotate: 3, floatX: 6 * motionScale, floatY: 8 * motionScale, floatRotate: 0.28 * motionScale, push: 16 * pushScale, phase: 1.4, outX: 260, outY: -70, outRotate: 8, scaleLoss: 0.03 }],
+    [document.querySelector(".airdrop-window"), { baseRotate: 0, floatX: 5 * motionScale, floatY: 9 * motionScale, floatRotate: 0.32 * motionScale, push: 16 * pushScale, phase: 2.7, outX: 260, outY: 80, outRotate: 6, scaleLoss: 0.04 }],
+    [document.querySelector(".stack-window"), { baseRotate: -4, floatX: 6 * motionScale, floatY: 8 * motionScale, floatRotate: 0.3 * motionScale, push: 15 * pushScale, phase: 4.1, outX: -240, outY: 70, outRotate: -7, scaleLoss: 0.03 }]
+  ]);
+
+  const liveMotion = new Map(
+    cards.map((card) => {
+      const config = cardMotion.get(card) || {};
+      return [
+        card,
+        {
+          x: 0,
+          y: 0,
+          rotate: config.baseRotate || 0,
+          scale: 1
+        }
+      ];
+    })
+  );
+
+  let frameId;
+  let lastTime = window.performance.now();
+  let elapsedTime = 0;
+
+  const isMotionLayout = () => window.innerWidth >= 768;
+
+  const resetInlineMotion = () => {
+    cards.forEach((card) => {
+      card.style.transform = "";
+    });
+  };
+
+  const getAvoidanceMotion = (card, config) => {
+    if (!pointer.isActive || pointer.isPressed) {
+      return { x: 0, y: 0, rotate: 0, isInside: false };
     }
 
     const rect = card.getBoundingClientRect();
-    const nearestX = clamp(motion.pointerClientX, rect.left, rect.right);
-    const nearestY = clamp(motion.pointerClientY, rect.top, rect.bottom);
-    const distanceToBox = Math.hypot(motion.pointerClientX - nearestX, motion.pointerClientY - nearestY);
-    const hitboxRadius = clamp(Math.max(rect.width, rect.height) * 0.28, 120, 180);
-    const influence = clamp(1 - distanceToBox / hitboxRadius, 0, 1);
+    const isInside = pointer.x >= rect.left && pointer.x <= rect.right && pointer.y >= rect.top && pointer.y <= rect.bottom;
 
-    if (influence === 0) {
-      return { x: 0, y: 0, rotate: 0 };
+    if (isInside) {
+      return { x: 0, y: 0, rotate: 0, isInside: true };
     }
 
-    let awayX = rect.left + rect.width / 2 - motion.pointerClientX;
-    let awayY = rect.top + rect.height / 2 - motion.pointerClientY;
+    const nearestX = clamp(pointer.x, rect.left, rect.right);
+    const nearestY = clamp(pointer.y, rect.top, rect.bottom);
+    const distanceToBox = Math.hypot(pointer.x - nearestX, pointer.y - nearestY);
+    const pullRange = clamp(Math.max(rect.width, rect.height) * 0.36, 120, 210);
+    const influence = clamp(1 - distanceToBox / pullRange, 0, 1);
+
+    if (influence === 0) {
+      return { x: 0, y: 0, rotate: 0, isInside: false };
+    }
+
+    let awayX = rect.left + rect.width / 2 - pointer.x;
+    let awayY = rect.top + rect.height / 2 - pointer.y;
     let awayDistance = Math.hypot(awayX, awayY);
 
     if (awayDistance < 0.001) {
@@ -288,105 +293,127 @@ function initDesktopWindowMotion() {
     }
 
     const strength = easeOut(influence);
-    const maxPush = clamp(Math.min(rect.width, rect.height) * 0.08, 12, 22);
+    const maxPush = config.push || 16;
     const normalizedX = awayX / awayDistance;
     const normalizedY = awayY / awayDistance;
 
     return {
       x: normalizedX * maxPush * strength,
       y: normalizedY * maxPush * strength,
-      rotate: clamp(normalizedX * 1.8, -1.8, 1.8) * strength
+      rotate: clamp(normalizedX * 1.2, -1.2, 1.2) * strength,
+      isInside: false
     };
   };
 
-  const render = () => {
+  const render = (now) => {
     frameId = undefined;
 
-    if (window.innerWidth < 992) {
-      cards.forEach((card) => {
-        card.style.opacity = "";
-        card.style.transform = "";
-      });
+    if (!isMotionLayout()) {
+      resetInlineMotion();
       return;
     }
 
-    const easedScroll = easeOut(motion.scrollProgress);
-    const activeCard = getActiveCard();
-    let shouldKeepAnimating = false;
+    const deltaTime = Math.min((now - lastTime) / 1000, 0.05);
+    lastTime = now;
+    elapsedTime += deltaTime;
+    const scrollEase = easeOut(scroll.progress);
 
     cards.forEach((card) => {
       if (card.classList.contains("is-dismissed")) {
-        card.style.opacity = "";
         card.style.transform = "";
         return;
       }
 
-      const config = cardMotion.get(card) || { outX: 0, outY: -120, outRotate: 0, baseRotate: 0, scaleLoss: 0.05 };
-      const avoidance = getAvoidanceMotion(card, activeCard);
+      const config = cardMotion.get(card) || { baseRotate: 0, floatX: 5, floatY: 8, floatRotate: 0.25, push: 14, phase: 0, outX: 0, outY: -80, outRotate: 0, scaleLoss: 0.03 };
       const state = liveMotion.get(card);
+      const avoidance = getAvoidanceMotion(card, config);
+      const hoverCalm = avoidance.isInside ? 0.22 : 1;
+      const floatX = Math.sin(elapsedTime * 0.7 + config.phase) * config.floatX * hoverCalm;
+      const floatY = Math.cos(elapsedTime * 0.82 + config.phase) * config.floatY * hoverCalm;
+      const floatRotate = Math.sin(elapsedTime * 0.45 + config.phase) * config.floatRotate * hoverCalm;
+
       const target = {
-        x: config.outX * easedScroll + avoidance.x,
-        y: config.outY * easedScroll + avoidance.y,
-        rotate: config.baseRotate + config.outRotate * easedScroll + avoidance.rotate,
-        scale: 1 - config.scaleLoss * easedScroll,
-        opacity: clamp(1 - easedScroll * 1.15, 0, 1)
+        x: floatX + avoidance.x + config.outX * scrollEase,
+        y: floatY + avoidance.y + config.outY * scrollEase,
+        rotate: config.baseRotate + floatRotate + avoidance.rotate + config.outRotate * scrollEase,
+        scale: (avoidance.isInside ? 1.01 : 1) - config.scaleLoss * scrollEase
       };
 
-      state.x = lerp(state.x, target.x, 0.18);
-      state.y = lerp(state.y, target.y, 0.18);
-      state.rotate = lerp(state.rotate, target.rotate, 0.18);
-      state.scale = lerp(state.scale, target.scale, 0.18);
-      state.opacity = lerp(state.opacity, target.opacity, 0.18);
+      state.x = lerp(state.x, target.x, 0.12);
+      state.y = lerp(state.y, target.y, 0.12);
+      state.rotate = lerp(state.rotate, target.rotate, 0.12);
+      state.scale = lerp(state.scale, target.scale, 0.12);
 
-      shouldKeepAnimating = shouldKeepAnimating
-        || Math.abs(state.x - target.x) > 0.05
-        || Math.abs(state.y - target.y) > 0.05
-        || Math.abs(state.rotate - target.rotate) > 0.02
-        || Math.abs(state.scale - target.scale) > 0.001
-        || Math.abs(state.opacity - target.opacity) > 0.002;
-
-      card.style.opacity = String(state.opacity);
       card.style.transform = `translate3d(${state.x}px, ${state.y}px, 0) rotate(${state.rotate}deg) scale(${state.scale})`;
     });
 
-    if (shouldKeepAnimating) {
-      frameId = window.requestAnimationFrame(render);
-    }
+    frameId = window.requestAnimationFrame(render);
   };
 
-  const queueRender = () => {
+  const startMotion = () => {
     if (!frameId) {
+      lastTime = window.performance.now();
       frameId = window.requestAnimationFrame(render);
     }
   };
 
-  const updateScroll = () => {
-    const rect = scene.getBoundingClientRect();
-    const start = window.innerHeight * 0.12;
-    const distance = Math.max(scene.offsetHeight * 0.55, 360);
-    motion.scrollProgress = clamp((start - rect.top) / distance, 0, 1);
-    queueRender();
+  const stopMotion = () => {
+    if (frameId) {
+      window.cancelAnimationFrame(frameId);
+      frameId = undefined;
+    }
   };
 
-  scene.addEventListener("pointermove", (event) => {
-    if (window.innerWidth < 992) {
+  const handleResize = () => {
+    if (isMotionLayout()) {
+      updateScroll();
+      startMotion();
       return;
     }
 
-    motion.pointerClientX = event.clientX;
-    motion.pointerClientY = event.clientY;
-    motion.hasPointer = true;
-    queueRender();
+    stopMotion();
+    resetInlineMotion();
+  };
+
+  scene.addEventListener("pointermove", (event) => {
+    if (!isMotionLayout()) {
+      return;
+    }
+
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.isActive = true;
   });
 
   scene.addEventListener("pointerleave", () => {
-    motion.hasPointer = false;
-    queueRender();
+    pointer.isActive = false;
+    pointer.isPressed = false;
   });
 
+  scene.addEventListener("pointerdown", () => {
+    pointer.isPressed = true;
+  });
+
+  window.addEventListener("pointerup", () => {
+    pointer.isPressed = false;
+  });
+
+  const updateScroll = () => {
+    if (!isMotionLayout()) {
+      scroll.progress = 0;
+      return;
+    }
+
+    const hero = scene.closest(".desktop-hero") || scene;
+    const rect = hero.getBoundingClientRect();
+    const distance = Math.max(hero.offsetHeight * 0.45, 360);
+    scroll.progress = clamp(-rect.top / distance, 0, 1);
+  };
+
   window.addEventListener("scroll", updateScroll, { passive: true });
-  window.addEventListener("resize", updateScroll);
+  window.addEventListener("resize", handleResize);
   updateScroll();
+  handleResize();
 }
 
 function initMiniPlayer() {
@@ -619,6 +646,7 @@ function initContactForm() {
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    validateContactFormFields(form);
 
     if (!form.checkValidity()) {
       form.classList.add("was-validated");
@@ -665,6 +693,25 @@ function initContactForm() {
     } finally {
       setFormPending(submitButton, false);
     }
+  });
+}
+
+function validateContactFormFields(form) {
+  const rules = [
+    { name: "name", min: 2, max: 120 },
+    { name: "subject", min: 2, max: 160 },
+    { name: "message", min: 5, max: 5000 }
+  ];
+
+  rules.forEach((rule) => {
+    const field = form.elements[rule.name];
+    if (!field) {
+      return;
+    }
+
+    const length = field.value.trim().length;
+    const isValidLength = length >= rule.min && length <= rule.max;
+    field.setCustomValidity(isValidLength ? "" : "Kontrollera längden på fältet.");
   });
 }
 
