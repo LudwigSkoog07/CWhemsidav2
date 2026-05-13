@@ -613,6 +613,7 @@ function initInteractiveShowcase() {
       });
       button.classList.add("is-active");
       button.setAttribute("aria-selected", "true");
+      card.setAttribute("aria-labelledby", button.id);
 
       card.classList.remove("is-changing");
       void card.offsetWidth;

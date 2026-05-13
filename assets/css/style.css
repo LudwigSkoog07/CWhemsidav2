@@ -664,7 +664,7 @@ a:hover {
   padding: 0 2rem 2rem;
 }
 
-.intro-window h1 {
+.intro-window h2 {
   margin: 0;
   font-family: "Sora", sans-serif;
   max-width: 100%;
@@ -1220,7 +1220,7 @@ a:hover {
     padding-inline: 1rem;
   }
 
-  .intro-window h1 {
+  .intro-window h2 {
     font-size: clamp(3.4rem, 18vw, 5.6rem);
   }
 
