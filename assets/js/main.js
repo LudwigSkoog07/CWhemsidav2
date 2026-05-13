@@ -615,8 +615,9 @@ function initContactForm() {
   }
 
   const status = document.getElementById("form-status");
+  const submitButton = form.querySelector('button[type="submit"]');
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
     if (!form.checkValidity()) {
@@ -625,23 +626,75 @@ function initContactForm() {
       return;
     }
 
+    const config = getPortfolioSupabaseConfig();
+    const supabaseClient = createPortfolioSupabaseClient(config);
+
+    if (!supabaseClient) {
+      setFormStatus(status, "Supabase saknar projekt-URL eller anon key.", true);
+      return;
+    }
+
     const formData = new FormData(form);
-    const recipient = form.dataset.recipient || "Skoog2007@gmail.com";
-    const subject = encodeURIComponent(formData.get("subject"));
-    const body = encodeURIComponent(
-      `Namn: ${formData.get("name")}\nE-post: ${formData.get("email")}\n\nMeddelande:\n${formData.get("message")}`
-    );
+    const payload = {
+      name: String(formData.get("name") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      subject: String(formData.get("subject") || "").trim(),
+      message: String(formData.get("message") || "").trim(),
+      consent: formData.get("consent") === "on",
+      page_path: window.location.pathname,
+      user_agent: window.navigator.userAgent
+    };
 
-    setFormStatus(
-      status,
-      "Meddelandet öppnas i din e-postklient.",
-      false
-    );
+    setFormPending(submitButton, true);
 
-    form.reset();
-    form.classList.remove("was-validated");
-    window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+    try {
+      const { error } = await supabaseClient
+        .from(config.table)
+        .insert(payload);
+
+      if (error) {
+        throw error;
+      }
+
+      setFormStatus(status, "Tack! Ditt meddelande har skickats.", false);
+      form.reset();
+      form.classList.remove("was-validated");
+    } catch (error) {
+      console.error("Supabase form submit failed:", error);
+      setFormStatus(status, "Meddelandet kunde inte skickas. Försök igen om en stund.", true);
+    } finally {
+      setFormPending(submitButton, false);
+    }
   });
+}
+
+function getPortfolioSupabaseConfig() {
+  const config = window.PORTFOLIO_SUPABASE || {};
+
+  return {
+    url: config.url || "",
+    anonKey: config.anonKey || "",
+    table: config.table || "portfolio_mail_submits"
+  };
+}
+
+function createPortfolioSupabaseClient(config) {
+  const hasPlaceholders = [config.url, config.anonKey].some((value) => value.includes("YOUR_"));
+
+  if (hasPlaceholders || !config.url || !config.anonKey || !window.supabase?.createClient) {
+    return null;
+  }
+
+  return window.supabase.createClient(config.url, config.anonKey);
+}
+
+function setFormPending(button, isPending) {
+  if (!button) {
+    return;
+  }
+
+  button.disabled = isPending;
+  button.textContent = isPending ? "Skickar..." : "Skicka meddelande";
 }
 
 function setFormStatus(statusNode, message, isError) {
