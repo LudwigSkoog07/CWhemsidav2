@@ -151,6 +151,17 @@ function initProjectModal() {
     return;
   }
 
+  document.querySelectorAll(".project-card-clickable").forEach((card) => {
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      card.click();
+    });
+  });
+
   modal.addEventListener("show.bs.modal", (event) => {
     const trigger = event.relatedTarget;
     const projectKey = trigger?.getAttribute("data-project-key");
